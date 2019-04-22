@@ -1,0 +1,26 @@
+{
+    "name": "graphql-react-event-booking",
+    "version": "1.0.0",
+    "description": "",
+    "main": "app.js",
+    "dependencies": {
+        "express": "^4.16.4"
+    },
+    "devDependencies": {
+        "nodemon": "^1.18.11"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "nodemon app.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kshkrao3/graphql-react-event-booking.git"
+    },
+    "author": "Guruprasad Rao and Academind",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/kshkrao3/graphql-react-event-booking/issues"
+    },
+    "homepage": "https://github.com/kshkrao3/graphql-react-event-booking#readme"
+}
