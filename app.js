@@ -4,12 +4,14 @@ const graphqlHttp = require('express-graphql');
 const mongoose = require('mongoose');
 const graphQlSchema = require('./graphql/schema/index');
 const graphQlResolvers = require('./graphql/resolvers/index');
-
+const isAuth = require('./middleware/is-auth');
 app.use(express.json());
 
 app.listen(3000, () => {
     console.log('App listening on port 3000!');
 });
+
+app.use(isAuth);
 
 app.use('/api', graphqlHttp({
     schema: graphQlSchema,
