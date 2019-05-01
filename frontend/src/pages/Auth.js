@@ -82,7 +82,7 @@ class AuthPage extends React.Component{
         const email = this.emailEl.current.value;
         const password = this.passwordEl.current.value;
 
-        if(email && password){
+        if(email.trim().length > 0 && password.trim().length > 0){
             let reqBody = {
                 query: `
                     query {

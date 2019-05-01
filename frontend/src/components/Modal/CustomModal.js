@@ -7,6 +7,7 @@ import Modal from '@material-ui/core/Modal';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 
+
 function getModalStyle() {
   const top = 50;
   const left = 50;
@@ -27,14 +28,11 @@ const styles = theme => ({
       padding: theme.spacing.unit * 4,
       outline: 'none',
     },
-    title: {
-      padding: theme.spacing.unit * 2,
-    },
     modalBody: {
-      margin: '20px 0px'
+      margin: '10px 0px'
     },
-    right: {
-      textAlign: 'right'
+    center: {
+      textAlign: 'center'
     },
     button: {
       margin: theme.spacing.unit,
@@ -42,7 +40,6 @@ const styles = theme => ({
   });
 
 class CustomModal extends React.Component{
-  
   render() {
     const { classes } = this.props;
     return (
@@ -51,16 +48,15 @@ class CustomModal extends React.Component{
           aria-labelledby="modal-title"
           aria-describedby="modal-description"
           open={this.props.open}
+          disableBackdropClick={true}
           onClose={this.props.onClose}>
           <div style={getModalStyle()} className={classes.paper}>
           <Grid
             container
-            spacing={16}
-            className={classes.title}
+            spacing={8}
             alignItems={'center'}
             direction={'row'}
-            justify={'center'}
-            mb={20}>
+            justify={'center'}>
               <Typography mb={2} variant="h6" id="modal-title">
                 {this.props.title}
               </Typography>
@@ -68,7 +64,7 @@ class CustomModal extends React.Component{
             <Typography component="div" className={classes.modalBody}>
               {this.props.children}
             </Typography>
-            <Typography component="section" className={classes.right}>
+            <Typography component="section" className={classes.center}>
               {this.props.canCanel && 
                 <Button variant="contained" color="secondary" onClick={this.props.onCancel} className={classes.button}>
                   Cancel
