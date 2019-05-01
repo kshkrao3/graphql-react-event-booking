@@ -14,7 +14,7 @@ import Typography from '@material-ui/core/Typography';
 import withStyles from '@material-ui/core/styles/withStyles';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import blue from '@material-ui/core/colors/blue';
-
+import AuthContext from '../context/auth-context';
 const theme = createMuiTheme({
     palette:{
         primary:blue
@@ -59,9 +59,10 @@ const styles = theme => ({
 class AuthPage extends React.Component{
     
     state = {
-        isLogin: true,
-
+        isLogin: true
     }
+
+    static contextType = AuthContext;
 
     constructor(props){
         super(props);
@@ -117,7 +118,11 @@ class AuthPage extends React.Component{
                 }
                 return res.json();
             }).then(resData => {
-                console.log(resData);
+                if(this.state.isLogin && resData.data.login.token){
+                    this.context.login( resData.data.login.token, 
+                                        resData.data.login.userId,
+                                        resData.data.login.tokenExpiration);
+                }
             }).catch(err=> {
                 console.log('Error while creating user', err);
             });    

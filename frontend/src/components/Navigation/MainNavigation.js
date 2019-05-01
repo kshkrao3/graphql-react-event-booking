@@ -22,6 +22,9 @@ import {NavLink} from 'react-router-dom';
 import CalendarToday from '@material-ui/icons/CalendarToday';
 import LibraryBooks from '@material-ui/icons/LibraryBooks';
 import Lock from '@material-ui/icons/Lock';
+import ExitToApp from '@material-ui/icons/ExitToApp';
+import AuthContext from '../../context/auth-context';
+
 import './MainNavigation.css';
 
 const theme = createMuiTheme({
@@ -193,78 +196,92 @@ class MainNavigation extends React.Component {
     );
 
     return (
-        <MuiThemeProvider theme={theme}>
-            <div className={classes.root}>
-                <AppBar position="static">
-                    <Toolbar>
-                        <IconButton className={classes.menuButton} color="inherit" aria-label="Open drawer">
-                        <MenuIcon />
-                        </IconButton>
-                        <Typography className={classes.title} variant="h6" color="inherit" noWrap>
-                            Easy Events
-                        </Typography>
-                        <NavLink to="/events" className={[classes.white, classes.noTextDeco, classes.marginLeft15].join(' ')}>
-                            <IconButton color="inherit">
-                                <CalendarToday/>
-                            </IconButton>    
-                            <span className={classes.marginRight10}>Events</span>
-                        </NavLink>
-                        <NavLink to="/bookings" className={[classes.white, classes.noTextDeco].join(' ')}>
-                            <IconButton color="inherit">
-                                <LibraryBooks/>
-                            </IconButton>    
-                            <span className={classes.marginRight10}>Bookings</span>
-                        </NavLink>
-                        <div className={classes.grow} />
-                        <div className={classes.search}>
-                        <div className={classes.searchIcon}>
-                            <SearchIcon />
-                        </div>
-                        <InputBase
-                            placeholder="Search…"
-                            classes={{
-                                root: classes.inputRoot,
-                                input: classes.inputInput
-                            }}
-                        />
-                        </div>
-                        <div className={classes.sectionDesktop}>
-                        
-                        <IconButton color="inherit">
-                            <Badge badgeContent={4} color="secondary">
-                            <MailIcon />
-                            </Badge>
-                        </IconButton>
-                        <IconButton color="inherit">
-                            <Badge badgeContent={17} color="secondary">
-                            <NotificationsIcon />
-                            </Badge>
-                        </IconButton>
-                        <NavLink to="/auth" className={[classes.white, classes.noTextDeco].join(' ')}>
-                            <IconButton color="inherit">
-                                <Lock/>
-                            </IconButton>
-                        </NavLink>
-                        <IconButton
-                            aria-owns={isMenuOpen ? 'material-appbar' : undefined}
-                            aria-haspopup="true"
-                            onClick={this.handleProfileMenuOpen}
-                            color="inherit"
-                        >
-                            <AccountCircle />
-                        </IconButton>
-                        </div>
-                        <div className={classes.sectionMobile}>
-                        <IconButton aria-haspopup="true" onClick={this.handleMobileMenuOpen} color="inherit">
-                            <MoreIcon />
-                        </IconButton>
-                        </div>
-                    </Toolbar>
-                    </AppBar>
-                {renderMenu}
-                {renderMobileMenu}
-            </div>
-        </MuiThemeProvider>
+      <AuthContext.Consumer>
+        {(context) => (
+            <MuiThemeProvider theme={theme}>
+              <div className={classes.root}>
+                  <AppBar position="static">
+                      <Toolbar>
+                          <IconButton className={classes.menuButton} color="inherit" aria-label="Open drawer">
+                          <MenuIcon />
+                          </IconButton>
+                          <Typography className={classes.title} variant="h6" color="inherit" noWrap>
+                              Easy Events
+                          </Typography>
+                          <NavLink to="/events" className={[classes.white, classes.noTextDeco, classes.marginLeft15].join(' ')}>
+                              <IconButton color="inherit">
+                                  <CalendarToday/>
+                              </IconButton>    
+                              <span className={classes.marginRight10}>Events</span>
+                          </NavLink>
+                          {context.token &&
+                            <NavLink to="/bookings" className={[classes.white, classes.noTextDeco].join(' ')}>
+                                <IconButton color="inherit">
+                                    <LibraryBooks/>
+                                </IconButton>    
+                                <span className={classes.marginRight10}>Bookings</span>
+                            </NavLink>
+                          }
+                          <div className={classes.grow} />
+                          <div className={classes.search}>
+                          <div className={classes.searchIcon}>
+                              <SearchIcon />
+                          </div>
+                          <InputBase
+                              placeholder="Search…"
+                              classes={{
+                                  root: classes.inputRoot,
+                                  input: classes.inputInput
+                              }}
+                          />
+                          </div>
+                          <div className={classes.sectionDesktop}>
+                          {!context.token &&
+                            <NavLink to="/auth" className={[classes.white, classes.noTextDeco].join(' ')}>
+                                <IconButton color="inherit">
+                                    <Lock/>
+                                </IconButton>
+                            </NavLink>
+                          }
+                          {context.token && (
+                            <React.Fragment>
+                              <IconButton color="inherit">
+                                  <Badge badgeContent={4} color="secondary">
+                                  <MailIcon />
+                                  </Badge>
+                              </IconButton>
+                              <IconButton color="inherit">
+                                  <Badge badgeContent={17} color="secondary">
+                                  <NotificationsIcon />
+                                  </Badge>
+                              </IconButton>
+                              <IconButton
+                                  aria-owns={isMenuOpen ? 'material-appbar' : undefined}
+                                  aria-haspopup="true"
+                                  onClick={this.handleProfileMenuOpen}
+                                  color="inherit">
+                                  <AccountCircle />
+                              </IconButton>
+                              <IconButton onClick={context.logout} color="inherit">
+                                <ExitToApp />
+                              </IconButton>
+                            </React.Fragment>
+                          )}
+                          </div>
+                          <div className={classes.sectionMobile}>
+                          <IconButton aria-haspopup="true" onClick={this.handleMobileMenuOpen} color="inherit">
+                              <MoreIcon />
+                          </IconButton>
+                          </div>
+                      </Toolbar>
+                      </AppBar>
+                    {renderMenu}
+                  
+                  {renderMobileMenu}
+              </div>
+          </MuiThemeProvider>
+        )}
+      </AuthContext.Consumer>
     );
   }
 }
