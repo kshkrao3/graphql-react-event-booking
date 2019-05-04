@@ -76,7 +76,7 @@ class CustomModal extends React.Component{
                   Cancel
                 </Button>
               }
-              {this.props.canConfirm && 
+              {this.props.canConfirm && this.props.confirmText && 
                 <Button variant="contained" color="primary" onClick={this.props.onConfirm} className={classes.button}>
                   {this.props.confirmText}
                 </Button>

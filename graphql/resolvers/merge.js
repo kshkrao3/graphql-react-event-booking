@@ -2,15 +2,17 @@ const Event = require('../../models/event');
 const User = require('../../models/user');
 const { dateToISOString } = require('../../helpers/date');
 const transformEvent = event => {
+    if(!event) return;
     return Object.assign({}, event._doc, { creator: user.bind(this, event.creator), date: dateToISOString(event._doc.date) });
 };
 
 const transformBooking = booking => {
-    return Object.assign({}, booking._doc, {
-        createdAt: dateToISOString(booking._doc.createdAt),
-        updatedAt: dateToISOString(booking._doc.updatedAt),
-        user: user.bind(this, booking._doc.user),
-        event: singleEvent.bind(this, booking._doc.event)
+    return Object.assign({}, booking, {
+        _id: booking._id,
+        createdAt: dateToISOString(booking.createdAt),
+        updatedAt: dateToISOString(booking.updatedAt),
+        user: user.bind(this, booking.user),
+        event: singleEvent.bind(this, booking.event)
     });
 };
 
