@@ -117,6 +117,8 @@ class EventsPage extends React.Component{
         selectedEvent: null
     };
 
+    isActive = true;
+
     static contextType = AuthContext;
 
     handleDateChange = date => {
@@ -239,10 +241,14 @@ class EventsPage extends React.Component{
             }
             return res.json();
         }).then(resData => {
-            this.setState({events: resData.data.events, isLoading: false});
+            if(this.isActive){
+                this.setState({events: resData.data.events, isLoading: false});
+            }
         }).catch(err=> {
             console.log('Error while creating event', err);
-            this.setState({isLoading: false});
+            if(this.isActive){
+                this.setState({isLoading: false});
+            }
         });    
     }
 
@@ -267,8 +273,56 @@ class EventsPage extends React.Component{
     }
 
     bookEventHandler= () => {
+        if(!this.context.token){
+            this.setState({selectedEvent: null, openSnack: true, message: 'You must be logged in to book events'});
+            return;
+        }
+        const reqBody = {
+            query:`
+                mutation{
+                    bookEvent(eventId: "${this.state.selectedEvent._id}"){
+                        _id
+                        event{
+                            _id
+                            title
+                            description
+                            price
+                            date
+                        }
+                        user{
+                            _id
+                            email
+                        }
+                        createdAt
+                        updatedAt
+                    }
+                }
+            `
+        };
 
+         fetch('http://localhost:3001/api',{
+            method: 'POST',
+            body: JSON.stringify(reqBody),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer '+ this.context.token
+            }
+        }).then(res=> {
+            if(res.status !== 200 && res.status !== 201){
+                throw new Error('Failed to create event');
+            }
+            return res.json();
+        }).then(resData => {
+            this.setState({selectedEvent: null, isLoading: false, open: false});
+        }).catch(err=> {
+            console.log('Error while creating event', err);
+            this.setState({isLoading: false});
+        });    
     };
+
+    componentWillUnmount(){
+        this.isActive = false;
+    }
 
     render(){
         const { selectedDate } = this.state;
@@ -276,7 +330,6 @@ class EventsPage extends React.Component{
             <MuiThemeProvider theme={theme}>
                 <main className={classes.main}>
                     <CssBaseline />
-                    
                     <Paper className={classes.paper} elevation={2}>
                         {this.context.token &&
                             <React.Fragment>
@@ -302,7 +355,7 @@ class EventsPage extends React.Component{
                             <EventList classes={classes} onViewDetail={this.showDetailHandler} events={this.state.events} authUserId={this.context.userId}/>
                         }
                     </Paper>
-                    {this.context.token &&
+                    {this.context.token && !this.state.selectedEvent &&
                         <CustomModal confirmText="Confirm" title='ADD EVENT' canCanel canConfirm {...this.state} onClose={this.triggerModalClose} onCancel={this.eventCancelHandler} onConfirm={this.eventConfirmHandler}>
                             <form className={classes.form}>
                                 <FormControl margin="normal" required fullWidth>
@@ -344,7 +397,7 @@ class EventsPage extends React.Component{
                         </CustomModal>
                     }
                     {this.state.selectedEvent && (
-                        <CustomModal confirmText='Book Event' title={this.state.selectedEvent.title.toUpperCase()} canCanel canConfirm {...this.state} onClose={this.triggerModalClose} onCancel={this.eventCancelHandler} onConfirm={this.bookEventHandler}>
+                        <CustomModal confirmText={this.context.token ? 'Book Event' : ''} title={this.state.selectedEvent.title.toUpperCase()} canCanel canConfirm {...this.state} onClose={this.triggerModalClose} onCancel={this.eventCancelHandler} onConfirm={this.bookEventHandler}>
                             <Typography component="div" className={[classes.marginTop20, classes.viewDetaildesc].join(' ')}>{this.state.selectedEvent.description}</Typography>
                             <Typography component="div" className={[classes.marginTop20, classes.viewDetailprice].join(' ')}>${this.state.selectedEvent.price} - {new Date(this.state.selectedEvent.date).toLocaleDateString()}</Typography>
                         </CustomModal>

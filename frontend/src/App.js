@@ -37,9 +37,6 @@ class App extends Component{
                   &&  <Redirect from="/bookings" to="/auth" exact/>
                 }
                 {!this.state.token
-                  &&  <Route path="/bookings" component={BookingsPage}/>
-                }
-                {!this.state.token
                   &&  <Route path="/auth" component={AuthPage}/>}
                 }
                 {this.state.token 
@@ -47,6 +44,9 @@ class App extends Component{
                 }
                 {this.state.token
                   &&  <Redirect from="/auth" to="/events" exact/>}
+                }
+                {this.state.token
+                  &&  <Route path="/bookings" component={BookingsPage}/>
                 }
                 <Route path="/events" component={EventsPage}/>
                 
