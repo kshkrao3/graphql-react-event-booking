@@ -25,11 +25,17 @@ const styles = theme => ({
       width: theme.spacing.unit * 50,
       backgroundColor: theme.palette.background.paper,
       boxShadow: theme.shadows[5],
-      padding: theme.spacing.unit * 4,
       outline: 'none',
     },
+    modalTitle: {
+      padding: "20px 0px"
+    },
     modalBody: {
-      margin: '10px 0px'
+      margin: '10px 0px',
+      padding: '0px 20px'
+    },
+    modalFooter: {
+      padding: '20px'
     },
     center: {
       textAlign: 'center'
@@ -51,20 +57,20 @@ class CustomModal extends React.Component{
           disableBackdropClick={true}
           onClose={this.props.onClose}>
           <div style={getModalStyle()} className={classes.paper}>
-          <Grid
-            container
-            spacing={8}
-            alignItems={'center'}
-            direction={'row'}
-            justify={'center'}>
-              <Typography mb={2} variant="h6" id="modal-title">
-                {this.props.title}
-              </Typography>
+            <Grid
+              container
+              spacing={8}
+              alignItems={'center'}
+              direction={'row'}
+              justify={'center'}>
+                <Typography mb={2} variant="h6" className={classes.modalTitle} id="modal-title">
+                  {this.props.title}
+                </Typography>
             </Grid>
             <Typography component="div" className={classes.modalBody}>
               {this.props.children}
             </Typography>
-            <Typography component="section" className={classes.center}>
+            <Typography component="section" className={[classes.center, classes.modalFooter].join(' ')}>
               {this.props.canCanel && 
                 <Button variant="contained" color="secondary" onClick={this.props.onCancel} className={classes.button}>
                   Cancel
@@ -72,7 +78,7 @@ class CustomModal extends React.Component{
               }
               {this.props.canConfirm && 
                 <Button variant="contained" color="primary" onClick={this.props.onConfirm} className={classes.button}>
-                  Confirm
+                  {this.props.confirmText}
                 </Button>
               }
             </Typography>

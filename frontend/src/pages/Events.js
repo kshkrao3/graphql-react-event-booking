@@ -18,21 +18,23 @@ import TextField from '@material-ui/core/TextField';
 import Snackbar from '@material-ui/core/Snackbar';
 import AuthContext from '../context/auth-context';
 import CustomSnackBar from '../components/SnackBars/CustomSnackBar'
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import Divider from '@material-ui/core/Divider';
+import EventList from '../components/Events/EventList/EventList';
+import Spinner from '../components/Spinner/Spinner';
 const styles = theme => ({
     main: {
-        width: 'auto',
+        width: '100%',
         display: 'block', // Fix IE 11 issue.
-        marginLeft: theme.spacing.unit * 3,
-        marginRight: theme.spacing.unit * 3,
-        [theme.breakpoints.up(400 + theme.spacing.unit * 3 * 2)]: {
-          width: 400,
+        // marginLeft: theme.spacing.unit * 3,
+        // marginRight: theme.spacing.unit * 3,
+        [theme.breakpoints.up(900 + theme.spacing.unit * 3 * 2)]: {
+          width: '800px',  
           marginLeft: 'auto',
           marginRight: 'auto',
         },
+        alignItems: 'center',
+    },
+    right: {
+        textAlign: 'right'
     },
     message: {
         display: 'flex',
@@ -43,7 +45,8 @@ const styles = theme => ({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 3}px ${theme.spacing.unit * 3}px`,
+        minHeight: '200px'
+        //padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 3}px ${theme.spacing.unit * 3}px`,
     },
     button: {
       margin: theme.spacing.unit,
@@ -60,6 +63,23 @@ const styles = theme => ({
     },
     marginTop20: {
         marginTop: '20px',
+    },
+    marginTop10: {
+        marginTop: '10px'
+    },
+    backdrop:{
+        zIndex: '1000'
+    },
+    progress: {
+        zIndex: '1001'
+    },
+    viewDetaildesc:{
+        fontWeight: '300',
+        fontSize: '16px'
+    },
+    viewDetailprice:{
+        fontWeight: '200',
+        fontSize: '14px'
     },
     root: {
         ...theme.mixins.gutters(),
@@ -92,7 +112,9 @@ class EventsPage extends React.Component{
         selectedDate: new Date(),
         messageVariant: 'error',
         message: 'Please fill in all the fields',
-        events: []
+        events: [],
+        isLoading: false,
+        selectedEvent: null
     };
 
     static contextType = AuthContext;
@@ -106,11 +128,11 @@ class EventsPage extends React.Component{
     };
 
     triggerModalClose = () => {
-        this.setState({open: false});
+        this.setState({open: false, selectedEvent: null});
     };
 
     eventCancelHandler = () =>{ 
-        this.setState({open: false});
+        this.setState({open: false, selectedEvent: null});
     };
 
     eventConfirmHandler = () =>{ 
@@ -156,7 +178,21 @@ class EventsPage extends React.Component{
             }
             return res.json();
         }).then(resData => {
-            this.fetchEvents();
+            this.setState(prevState => {
+                const updatedEvents = [...prevState.event];
+                updatedEvents.push({
+                    _id: resData.data.createEvent._id,
+                    title: resData.data.createEvent.title,
+                    description: resData.data.createEvent.description,
+                    date: resData.data.createEvent.date,
+                    price: resData.data.createEvent.price,
+                    creator: {
+                        _id: this.context.userId,
+                        email: resData.data.createEvent.creator.email
+                    }
+                });
+                return {events: updatedEvents};
+            });
         }).catch(err=> {
             console.log('Error while creating event', err);
         });    
@@ -172,6 +208,7 @@ class EventsPage extends React.Component{
     }
 
     fetchEvents(){
+        this.setState({isLoading: true});
         const reqBody = {
             query:`
                 query{
@@ -202,10 +239,18 @@ class EventsPage extends React.Component{
             }
             return res.json();
         }).then(resData => {
-            this.setState({events: resData.data.events});
+            this.setState({events: resData.data.events, isLoading: false});
         }).catch(err=> {
             console.log('Error while creating event', err);
+            this.setState({isLoading: false});
         });    
+    }
+
+    showDetailHandler = eventId =>{
+        this.setState(prevState => {
+            const selectedEvent = prevState.events.find(e=> e._id === eventId);
+            return {selectedEvent: selectedEvent, open: true};
+        })
     }
 
     constructor(props){
@@ -221,18 +266,22 @@ class EventsPage extends React.Component{
         this.fetchEvents();
     }
 
+    bookEventHandler= () => {
+
+    };
+
     render(){
         const { selectedDate } = this.state;
         return(
             <MuiThemeProvider theme={theme}>
                 <main className={classes.main}>
                     <CssBaseline />
-                
+                    
                     <Paper className={classes.paper} elevation={2}>
                         {this.context.token &&
                             <React.Fragment>
-                                <Typography variant="h5" component="h5">
-                                Share your own events
+                                <Typography variant="h5" className={classes.marginTop20} component="h5">
+                                    Share your own events
                                 </Typography>
                                 <Fab variant="extended"
                                     size="medium"
@@ -245,35 +294,16 @@ class EventsPage extends React.Component{
                                 </Fab>
                             </React.Fragment>
                         }
-                        <List className={classes.root}>
-                            {this.state.events.map((event, key) => {
-                               return (
-                                <React.Fragment key={event._id}>
-                                    <ListItem alignItems="flex-start">
-                                        <ListItemText
-                                        primary={event.title}
-                                        secondary={
-                                            <React.Fragment>
-                                            <Typography component="span" className={classes.inline} color="textPrimary">
-                                                {event.description}
-                                            </Typography>
-                                            {event.creator.email}
-                                            <Typography component="span" className={classes.inline}>
-                                                ${event.price}
-                                            </Typography>
-                                            </React.Fragment>
-                                        }
-                                        />
-                                    </ListItem>
-                                    <Divider/>
-                                </React.Fragment>
-                               )
-                            })}
-                            
-                        </List>
+                        {this.state.isLoading ? 
+                            <React.Fragment>
+                                <Spinner invisible={this.state.isLoading}/>
+                            </React.Fragment>
+                            :
+                            <EventList classes={classes} onViewDetail={this.showDetailHandler} events={this.state.events} authUserId={this.context.userId}/>
+                        }
                     </Paper>
                     {this.context.token &&
-                        <CustomModal title='ADD EVENT' canCanel canConfirm {...this.state} onClose={this.triggerModalClose} onCancel={this.eventCancelHandler} onConfirm={this.eventConfirmHandler}>
+                        <CustomModal confirmText="Confirm" title='ADD EVENT' canCanel canConfirm {...this.state} onClose={this.triggerModalClose} onCancel={this.eventCancelHandler} onConfirm={this.eventConfirmHandler}>
                             <form className={classes.form}>
                                 <FormControl margin="normal" required fullWidth>
                                     <InputLabel htmlFor="title">Title</InputLabel>
@@ -313,6 +343,12 @@ class EventsPage extends React.Component{
                             </form>
                         </CustomModal>
                     }
+                    {this.state.selectedEvent && (
+                        <CustomModal confirmText='Book Event' title={this.state.selectedEvent.title.toUpperCase()} canCanel canConfirm {...this.state} onClose={this.triggerModalClose} onCancel={this.eventCancelHandler} onConfirm={this.bookEventHandler}>
+                            <Typography component="div" className={[classes.marginTop20, classes.viewDetaildesc].join(' ')}>{this.state.selectedEvent.description}</Typography>
+                            <Typography component="div" className={[classes.marginTop20, classes.viewDetailprice].join(' ')}>${this.state.selectedEvent.price} - {new Date(this.state.selectedEvent.date).toLocaleDateString()}</Typography>
+                        </CustomModal>
+                    )}
                     <Snackbar
                         anchorOrigin={{ vertical:'top', horizontal: 'center' }}
                         open={this.state.openSnack}
