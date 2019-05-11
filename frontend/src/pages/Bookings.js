@@ -1,18 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import Avatar from '@material-ui/core/Avatar';
-import ImageIcon from '@material-ui/icons/Image';
+// import List from '@material-ui/core/List';
+// import ListItem from '@material-ui/core/ListItem';
+// import ListItemText from '@material-ui/core/ListItemText';
+// import Avatar from '@material-ui/core/Avatar';
+// import ImageIcon from '@material-ui/icons/Image';
 import AuthContext from '../context/auth-context';
 import Spinner from '../components/Spinner/Spinner';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import blue from '@material-ui/core/colors/blue';
 import Paper from '@material-ui/core/Paper';
 import CssBaseline from '@material-ui/core/CssBaseline';
-
+import BookingList from '../components/Bookings/BookingList/BookingList';
 const styles = theme => ({
     main: {
         width: '100%',
@@ -32,6 +32,10 @@ const styles = theme => ({
     message: {
         display: 'flex',
         alignItems: 'center',
+    },
+    error: {
+        backgroundColor: '#B00020',
+        color: 'white'
     },
     paper: {
         marginTop: theme.spacing.unit * 8,
@@ -114,6 +118,44 @@ class BookingsPage extends React.Component{
         this.fetchBookings();
     }
 
+    deleteBookingHandler = bookingId => {
+        this.setState({isLoading: true});
+        const reqBody = {
+            query:`
+                mutation{
+                    cancelBooking(bookingId: "${bookingId}"){
+                        _id
+                        title
+                    }
+                }
+            `
+        };
+
+         fetch('http://localhost:3001/api',{
+            method: 'POST',
+            body: JSON.stringify(reqBody),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer '+ this.context.token
+            }
+        }).then(res=> {
+            if(res.status !== 200 && res.status !== 201){
+                throw new Error('Failed to create event');
+            }
+            return res.json();
+        }).then(resData => {
+            this.setState(prevState => {
+                const updatedBookings = prevState.bookings.filter(booking => {
+                    return booking._id !== bookingId;
+                });
+                return {bookings : updatedBookings, isLoading: false};
+            });
+        }).catch(err=> {
+            console.log('Error while creating event', err);
+            this.setState({isLoading: false});
+        }); 
+    };
+
     fetchBookings = () => {
         this.setState({isLoading: true});
         const reqBody = {
@@ -170,20 +212,21 @@ class BookingsPage extends React.Component{
                                 <Spinner invisible={this.state.isLoading}/>
                             </React.Fragment>
                             :
-                            <React.Fragment>
-                                <List className={[classes.root, classes.fullWidth].join(' ')}>
-                                    {this.state.bookings.map(booking => {
-                                        return(
-                                            <ListItem key={booking._id}>
-                                                <Avatar>
-                                                    <ImageIcon />
-                                                </Avatar>
-                                                <ListItemText primary={booking.event.title} secondary={new Date(booking.createdAt).toLocaleDateString()} />
-                                            </ListItem>
-                                        );
-                                    })}
-                                </List>
-                            </React.Fragment>
+                            <BookingList classes={classes} onBookingDelete={this.deleteBookingHandler} bookings={this.state.bookings} authUserId={this.context.userId}/>
+                            // <React.Fragment>
+                            //     <List className={[classes.root, classes.fullWidth].join(' ')}>
+                            //         {this.state.bookings.map(booking => {
+                            //             return(
+                            //                 <ListItem key={booking._id}>
+                            //                     <Avatar>
+                            //                         <ImageIcon />
+                            //                     </Avatar>
+                            //                     <ListItemText primary={booking.event.title} secondary={new Date(booking.createdAt).toLocaleDateString()} />
+                            //                 </ListItem>
+                            //             );
+                            //         })}
+                            //     </List>
+                            // </React.Fragment>
                         }
                     </Paper>
                 </main>
