@@ -122,13 +122,16 @@ class BookingsPage extends React.Component{
         this.setState({isLoading: true});
         const reqBody = {
             query:`
-                mutation{
-                    cancelBooking(bookingId: "${bookingId}"){
+                mutation CancelBooking($id: ID!){
+                    cancelBooking(bookingId: $id){
                         _id
                         title
                     }
                 }
-            `
+            `,
+            variables: {
+                id: bookingId
+            }
         };
 
          fetch('http://localhost:3001/api',{
@@ -213,20 +216,6 @@ class BookingsPage extends React.Component{
                             </React.Fragment>
                             :
                             <BookingList classes={classes} onBookingDelete={this.deleteBookingHandler} bookings={this.state.bookings} authUserId={this.context.userId}/>
-                            // <React.Fragment>
-                            //     <List className={[classes.root, classes.fullWidth].join(' ')}>
-                            //         {this.state.bookings.map(booking => {
-                            //             return(
-                            //                 <ListItem key={booking._id}>
-                            //                     <Avatar>
-                            //                         <ImageIcon />
-                            //                     </Avatar>
-                            //                     <ListItemText primary={booking.event.title} secondary={new Date(booking.createdAt).toLocaleDateString()} />
-                            //                 </ListItem>
-                            //             );
-                            //         })}
-                            //     </List>
-                            // </React.Fragment>
                         }
                     </Paper>
                 </main>
