@@ -1,11 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-// import List from '@material-ui/core/List';
-// import ListItem from '@material-ui/core/ListItem';
-// import ListItemText from '@material-ui/core/ListItemText';
-// import Avatar from '@material-ui/core/Avatar';
-// import ImageIcon from '@material-ui/icons/Image';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import BarChart from '@material-ui/icons/BarChart';
+import List from '@material-ui/icons/List';
 import AuthContext from '../context/auth-context';
 import Spinner from '../components/Spinner/Spinner';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
@@ -13,6 +12,11 @@ import blue from '@material-ui/core/colors/blue';
 import Paper from '@material-ui/core/Paper';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import BookingList from '../components/Bookings/BookingList/BookingList';
+import Typography from '@material-ui/core/Typography';
+import Snackbar from '@material-ui/core/Snackbar';
+import CustomSnackBar from '../components/SnackBars/CustomSnackBar';
+import BookingsChart from '../components/Bookings/BookingsChart/BookingsChart';
+
 const styles = theme => ({
     main: {
         width: '100%',
@@ -99,12 +103,27 @@ const theme = createMuiTheme({
         useNextVariants: true,
     }
 });
+function TabContainer(props) {
+    return (
+      <Typography component="div" style={{ padding: 8 * 3 }}>
+        {props.children}
+      </Typography>
+    );
+  }
+  
+  TabContainer.propTypes = {
+    children: PropTypes.node.isRequired,
+  };
 let classes;
 class BookingsPage extends React.Component{
 
     state = {
         isLoading: false,
-        bookings: []
+        bookings: [],
+        activeTab: 0,
+        openSnack: false,
+        messageVariant: 'success',
+        message: 'Event cancelled successfully!',
     };
 
     static contextType = AuthContext;
@@ -112,6 +131,10 @@ class BookingsPage extends React.Component{
     constructor(props){
         super(props);
         classes = props.classes;
+    }
+
+    handleTabChange = (event, value) => {
+        this.setState({activeTab: value});
     }
 
     componentDidMount(){
@@ -151,11 +174,11 @@ class BookingsPage extends React.Component{
                 const updatedBookings = prevState.bookings.filter(booking => {
                     return booking._id !== bookingId;
                 });
-                return {bookings : updatedBookings, isLoading: false};
+                return {bookings : updatedBookings, isLoading: false, openSnack: true};
             });
         }).catch(err=> {
             console.log('Error while creating event', err);
-            this.setState({isLoading: false});
+            this.setState({isLoading: false, openSnack: true, message: 'Failed to cancel the booking', messageVariant: 'error'});
         }); 
     };
 
@@ -204,7 +227,12 @@ class BookingsPage extends React.Component{
         });    
     }
 
+    handleClose = () =>{ 
+        this.setState({openSnack: false});
+    }
+
     render(){
+        const { activeTab } = this.state;
         return(
             <MuiThemeProvider theme={theme}>
                 <main className={classes.main}>
@@ -215,9 +243,43 @@ class BookingsPage extends React.Component{
                                 <Spinner invisible={this.state.isLoading}/>
                             </React.Fragment>
                             :
-                            <BookingList classes={classes} onBookingDelete={this.deleteBookingHandler} bookings={this.state.bookings} authUserId={this.context.userId}/>
+                            <React.Fragment>
+                                <Tabs
+                                    value={activeTab}
+                                    onChange={this.handleTabChange}
+                                    scrollButtons="on"
+                                    className={classes.fullWidth}
+                                    indicatorColor="primary"
+                                    centered
+                                    textColor="primary"
+                                >
+                                    <Tab label="Event List" icon={<List />} />
+                                    <Tab label="Event Chart" icon={<BarChart />} />
+                                </Tabs>
+                                {activeTab === 0 && 
+                                    <BookingList classes={classes} onBookingDelete={this.deleteBookingHandler} bookings={this.state.bookings} authUserId={this.context.userId}/>
+                                }
+                                {activeTab === 1 && 
+                                    <BookingsChart classes={classes} bookings={this.state.bookings}/>
+                                }
+                            </React.Fragment>
                         }
                     </Paper>
+                    <Snackbar
+                        anchorOrigin={{ vertical:'top', horizontal: 'center' }}
+                        open={this.state.openSnack}
+                        onClose={this.handleClose}
+                        autoHideDuration={6000}
+                        ContentProps={{
+                            'aria-describedby': 'message-id',
+                        }}>
+                        <CustomSnackBar
+                            variant={this.state.messageVariant}
+                            className={classes.margin}
+                            onClose={this.handleClose}
+                            message={this.state.message}
+                        />
+                    </Snackbar>
                 </main>
             </MuiThemeProvider>
             
