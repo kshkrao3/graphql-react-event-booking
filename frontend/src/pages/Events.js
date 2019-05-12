@@ -150,8 +150,8 @@ class EventsPage extends React.Component{
 
         const reqBody = {
             query:`
-                mutation{
-                    createEvent(eventInput:{title: "${title}", price: ${price}, date: "${date}", description: "${description}"}){
+                mutation CreateEvent($title: String!, $price: Float!, $date: String!, $desc: String!){
+                    createEvent(eventInput:{title: $title, price: $price, date: $date, description: $desc}){
                         _id
                         title
                         description
@@ -163,7 +163,13 @@ class EventsPage extends React.Component{
                         }
                     }
                 }
-            `
+            `,
+            variables:{
+                title: title,
+                price: price,
+                date: date,
+                desc: description
+            }
         };
 
         const token = this.context.token;
@@ -181,7 +187,7 @@ class EventsPage extends React.Component{
             return res.json();
         }).then(resData => {
             this.setState(prevState => {
-                const updatedEvents = [...prevState.event];
+                const updatedEvents = [...prevState.events];
                 updatedEvents.push({
                     _id: resData.data.createEvent._id,
                     title: resData.data.createEvent.title,
@@ -279,8 +285,8 @@ class EventsPage extends React.Component{
         }
         const reqBody = {
             query:`
-                mutation{
-                    bookEvent(eventId: "${this.state.selectedEvent._id}"){
+                mutation BookEvent($id:ID!){
+                    bookEvent(eventId: $id){
                         _id
                         event{
                             _id
@@ -297,7 +303,10 @@ class EventsPage extends React.Component{
                         updatedAt
                     }
                 }
-            `
+            `,
+            variables: {
+                id: this.state.selectedEvent._id
+            }
         };
 
          fetch('http://localhost:3001/api',{
@@ -313,7 +322,7 @@ class EventsPage extends React.Component{
             }
             return res.json();
         }).then(resData => {
-            this.setState({selectedEvent: null, isLoading: false, open: false});
+            this.setState({selectedEvent: null, isLoading: false, open: false, openSnack: true, message: 'Event booked successfully', messageVariant: 'success'});
         }).catch(err=> {
             console.log('Error while creating event', err);
             this.setState({isLoading: false});
